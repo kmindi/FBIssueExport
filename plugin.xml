@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="Sample Action Set"
+            visible="true"
+            id="FBIssueExport.actionSet">
+         <menu
+               label="Sample &amp;Menu"
+               id="sampleMenu">
+            <separator
+                  name="sampleGroup">
+            </separator>
+         </menu>
+         <action
+               label="&amp;Sample Action"
+               icon="icons/sample.gif"
+               class="fbissueexport.actions.SampleAction"
+               tooltip="Hello, Eclipse world"
+               menubarPath="sampleMenu/sampleGroup"
+               toolbarPath="sampleGroup"
+               id="fbissueexport.actions.SampleAction">
+         </action>
+      </actionSet>
+   </extension>
+	<extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="de.tobject.findbugs.MarkerActions"
+            objectClass="org.eclipse.core.resources.IMarker">
+          <action
+                class="fbissueexport.actions.RightClickIssueShowExportAction"
+                enablesFor="1"
+                icon="icons/sample.png"
+                id="FBIssueExport.actions.RightClickIssueShowExportAction"
+                label="Export to GitHub or other"
+                menubarPath="fb">
+         </action>
+         
+      </objectContribution>
+
+   </extension>
+
+</plugin>

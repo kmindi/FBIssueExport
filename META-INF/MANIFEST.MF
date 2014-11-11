@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: FBIssueExport
+Bundle-SymbolicName: FBIssueExport;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: fbissueexport.Activator
+Bundle-Vendor: kmindi
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jgit;bundle-version="3.4.1",
+ edu.umd.cs.findbugs.plugin.eclipse;bundle-version="3.0.0",
+ org.apache.log4j;bundle-version="1.2.15",
+ org.eclipse.core.resources;bundle-version="3.9.1"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
