@@ -1,5 +1,6 @@
 package fbissueexport.actions;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -19,8 +20,8 @@ public class RightClickIssueShowExportAction implements IObjectActionDelegate{
 
 	private ISelection selection;
 	private IWorkbenchPart targetPart;
-	private Shell shell;
-
+	private static Logger logger = Logger.getLogger(Export.class);
+	
 	@Override
 	public void run(IAction action) {
 		if (targetPart == null) {
@@ -31,14 +32,10 @@ public class RightClickIssueShowExportAction implements IObjectActionDelegate{
                 IStructuredSelection ssel = (IStructuredSelection) selection;
                 Object element = ssel.getFirstElement();
                 IMarker marker = (IMarker) element;
-                
-                MessageDialog.openInformation(
-        				shell,
-        				"FindBugsGitComments",
-        				"New Action was executed on " + marker.getResource().getClass() + 
+                logger.debug("new action executed on " + marker.getResource().getClass() + 
         				" which is from project " + getSelectedProject(marker.getResource()) + ".");
                 if (MarkerUtil.isFindBugsMarker(marker)) {
-                	new Export(MarkerUtil.findBugInstanceForMarker(marker));
+                	new Export(MarkerUtil.findBugInstanceForMarker(marker), getSelectedProject(marker.getResource()));
                 }
             }
         } catch (Exception e) {
@@ -76,7 +73,6 @@ public class RightClickIssueShowExportAction implements IObjectActionDelegate{
 	@Override
 	public void setActivePart(IAction action, IWorkbenchPart targetPart) {
 		this.targetPart = targetPart;
-		this.shell = targetPart.getSite().getShell();
 	}
 	
 }
