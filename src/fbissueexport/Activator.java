@@ -2,6 +2,7 @@ package fbissueexport;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.SimpleLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -34,7 +35,7 @@ public class Activator extends AbstractUIPlugin {
 		
 		// initialize logger environement
 		BasicConfigurator.resetConfiguration();
-		BasicConfigurator.configure(new ConsoleAppender(new SimpleLayout()));
+		BasicConfigurator.configure(new ConsoleAppender(new PatternLayout("%d{ISO8601} %-5p [%t] %c: %m%n")));
 	}
 
 	/*

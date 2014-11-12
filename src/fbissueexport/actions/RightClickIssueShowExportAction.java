@@ -13,7 +13,6 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
 import de.tobject.findbugs.reporter.MarkerUtil;
-import edu.umd.cs.findbugs.BugInstance;
 import fbissueexport.Export;
 
 public class RightClickIssueShowExportAction implements IObjectActionDelegate{
