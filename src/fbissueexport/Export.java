@@ -61,6 +61,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugInstance;
+import edu.umd.cs.findbugs.BugRankCategory;
 
 public class Export {
 	
@@ -220,16 +221,14 @@ public class Export {
 			
 			// if the bug is not filed yet create a new issue
 			// https://github.com/<OWNER>/<REPOSITORY>/issues/new?title=<TITLE>&body=<DESCRIPTION>
-			String title = bug.getMessageWithoutPrefix();
-			String description = bug.getBugPattern().getDetailText(); // TODO include all relevant information and format better
 			
 			// TODO provide GUI to edit the issue before reporting
 			
 			HttpPost request = new HttpPost("https://bitbucket.org/api/1.0/repositories/" + issueRepo + "/issues");
 			
 			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-			params.add(new BasicNameValuePair("title", title));
-			params.add(new BasicNameValuePair("content", description));
+			params.add(new BasicNameValuePair("title", getTitle()));
+			params.add(new BasicNameValuePair("content", getDescription()));
 			request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 			
 			logger.debug("request line:" + request.getRequestLine());
@@ -283,11 +282,9 @@ public class Export {
 			
 			// if the bug is not filed yet create a new issue
 			// https://github.com/<OWNER>/<REPOSITORY>/issues/new?title=<TITLE>&body=<DESCRIPTION>
-			String title = bug.getMessageWithoutPrefix();
-			String description = bug.getBugPattern().getDetailText(); // TODO include all relevant information and format better
 			URIBuilder uriBuilder = new URIBuilder("https://github.com/" + issueRepo + "/issues/new");
-			uriBuilder.addParameter("title", title);
-			uriBuilder.addParameter("body", description);
+			uriBuilder.addParameter("title", getTitle());
+			uriBuilder.addParameter("body", getDescription());
 			openWebPage(uriBuilder.build());
 			return true;
 			
@@ -296,6 +293,30 @@ public class Export {
 		};
 		
 		return false;
+	}
+	
+	protected String getTitle() {
+		return bug.getMessageWithoutPrefix();
+	}
+	
+	protected String getDescription() {
+		String md = "";
+		md += "# " + bug.getAbridgedMessage() + "\n";
+		md += "\n\n"
+			+ bug.getBugPattern().getDetailText() + "\n\n";
+		
+		md += "The problem occurs in `"
+				+ bug.getPrimarySourceLineAnnotation().getClassName()
+				+ "` on line **" + bug.getPrimarySourceLineAnnotation().getStartLine() 
+				+ "** in method `" + bug.getPrimaryMethod().getMethodName() + "`\n\n";
+		
+		// TODO get file content
+		md += "";
+		md += "We have **" + bug.getPriorityString() + "** confidence for this **" + BugRankCategory.getRank(bug.getBugRank()) + "** bug!";
+		md +="\n\nThis bug was found using the [FBIssueExport](https://github.com/kmindi/FBIssueExport) by kmindi for FindBugs. \n"
+				+ "(FindBugs Bug-ID: "+ bug.getInstanceHash() + ")";
+		
+		return md;
 	}
 
 	/**
