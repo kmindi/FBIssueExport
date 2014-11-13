@@ -3,8 +3,12 @@ package fbissueexport;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,13 +31,35 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.core.JavaProject;
+import org.eclipse.jdt.launching.JavaRuntime;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugInstance;
 
 public class Export {
@@ -47,15 +73,38 @@ public class Export {
 		
 		this.bug = bug;
 		
-		// get project git directory if it exists
-		String possibleGitPath = project.getLocation().append(".git/").toString();
-		logger.debug("possible git Path: "+ possibleGitPath);
+		// TODO read threshold from project preferences
+		// 1 is highest confidence
+		if(bug.getPriority() > 2) {
+			Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+		    MessageDialog dialog = new MessageDialog(
+		    		activeShell, 
+		    		"Confidence below threshold!", 
+		    		null,
+		    		"This bug is only of " + bug.getPriorityString() + "! Are you sure you want to report it?",
+		    		MessageDialog.QUESTION_WITH_CANCEL, 
+					new String[]{
+						IDialogConstants.YES_LABEL, 
+						IDialogConstants.NO_LABEL},
+					0);
+		    
+		    switch(dialog.open()) {
+		    case 1: logger.debug("stopping export because user is not sure if confidence is high enough.");
+	    	return;
+		    }
+		}
 		
-		if(new File(possibleGitPath).exists()) {
-			logger.debug(possibleGitPath + " exists.");
+		// get file location this bug is found in
+		IPath path = project.getFile(bug.getPrimarySourceLineAnnotation().getSourcePath()).getProjectRelativePath();
+		IResource res = getResource(project, path.removeLastSegments(1).toString(), path.lastSegment());
+		File file = res.getLocation().toFile();
+		logger.debug("searching for versioned directory, starting at: " + file);
+		
+		if(new RepositoryBuilder().findGitDir(file).getGitDir() != null) {
+    		logger.debug("found versioned directory" + path);
 			try {
 				// get remotes and check if it contains github(or other popular platforms)
-				Repository repository = new RepositoryBuilder().findGitDir(new File(possibleGitPath)).build();
+				Repository repository = new RepositoryBuilder().findGitDir(file).build();
 				Config storedConfig = repository.getConfig();
 				Set<String> remotes = storedConfig.getSubsections("remote");
 				
@@ -76,12 +125,43 @@ public class Export {
 			      }
 			    }
 				
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			} catch (IOException e) {
+				logger.error(e.getMessage() + "\n" + e.getStackTrace());
 			}
 		}
 	}
+	
+	/**
+	 * Gets a resource from a project specific location.
+	 * 
+	 * @see http://stackoverflow.com/a/7727264/455578
+	 * @param project
+	 * @param folderPath
+	 * @param fileName
+	 * @return
+	 */
+	IResource getResource(IProject project, String folderPath, String fileName) {
+
+	    IJavaProject javaProject = JavaCore.create(project);
+	    try {
+			for (IPackageFragmentRoot root : javaProject.getAllPackageFragmentRoots()) {
+			    IPackageFragment folderFragment = root.getPackageFragment(folderPath);
+			    IResource folder = folderFragment.getResource();
+			    if (folder == null || ! folder.exists() || !(folder instanceof IContainer)) {
+			        continue;
+			    }
+
+			    IResource resource = ((IContainer) folder).findMember(fileName);
+			    if (resource.exists()) {
+			        return resource;
+			    }
+			}
+		} catch (JavaModelException e) {
+			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+		}
+	    // file not found in any source path
+	    return null;
+	} 
 	
 	
 	/**
@@ -168,12 +248,12 @@ public class Export {
 	}
 	
 	/**
-	 * Creates a new issue for the bug on GitHub
+	 * Creates a new issue for the bug on GitHub.
 	 * @param owner
 	 * @param repoName
 	 * @return
 	 */
-	private boolean exportToGitHubTracker(String owner, String repoName) {
+	protected boolean exportToGitHubTracker(String owner, String repoName) {
 		final String apiRepoUrl = "https://api.github.com/repos/";
 		String issueRepo = owner + "/" + repoName;
 		
@@ -219,7 +299,7 @@ public class Export {
 	}
 
 	/**
-	 * Opens a new browser window or new tab if already open
+	 * Opens a new browser window or new tab if browser already open.
 	 * @param uri
 	 */
 	public static void openWebPage(URI uri) {
@@ -248,17 +328,13 @@ public class Export {
 		// search issue list for Bug-ID (bug.getInstanceHash()) and don't create a new rather redirect to the existing issue
 		// https://api.github.com/repos/<OWNER>/<REPOSITORY>/issues
 		
-		String apiRepoUrl = "https://api.github.com/repos/";
-		String issueRepo = "kmindi/yii2";
-		
-		ResponseWithEntity response = httpGetRequest(apiRepoUrl + issueRepo + "/issues");
 		// loop through paginated response until we find a bug with our ID or reach the end
 		// care about paginated answers using https://developer.github.com/guides/traversing-with-pagination/ to navigate 
 		// always use the provided link header
 		// link header uses "<" and ">" to enclose the url
 		// but it gets parsed as name (starting with "<") and value (ending with ">")
 		
-		Header[] headers = response.getResponse().getAllHeaders();
+		/*Header[] headers = response.getResponse().getAllHeaders();
 		List<Header> headerList = Arrays.asList(headers);
 		for(Header header : headerList) {
 			//logger.info("header: " + header.getName());
@@ -271,7 +347,7 @@ public class Export {
 					}
 				}
 			}
-		}
+		}*/
 		
 		return false;
 	}
@@ -282,7 +358,6 @@ public class Export {
 	 * @return ResponseWithEntity(HTTPResponse, String entity)
 	 */
 	private ResponseWithEntity httpGetRequest(String url) {
-		logger.info("requesting url:"+url);
 		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpGet request = new HttpGet(url);
             request.addHeader("content-type", "application/json");
@@ -291,7 +366,7 @@ public class Export {
             logger.debug("request status: " + result.getStatusLine());
             return new ResponseWithEntity(result,EntityUtils.toString(result.getEntity(), "UTF-8"));
         } catch (IOException e) {
-        	logger.info(e.getMessage() + "\n" + e.getStackTrace());
+        	logger.error(e.getMessage() + "\n" + e.getStackTrace());
         }
 		return null;
 	}
