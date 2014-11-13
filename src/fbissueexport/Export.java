@@ -2,8 +2,11 @@ package fbissueexport;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.LineNumberReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -68,11 +71,14 @@ public class Export {
 	private static Logger logger = Logger.getLogger(Export.class);
 	
 	private BugInstance bug;
+
+	private IProject project;
 	
 	public Export(BugInstance bug, IProject project) {
 		logger.info("new Export instance created for Bug-ID: " + bug.getInstanceHash() + "in project " + project.getName());
 		
 		this.bug = bug;
+		this.project = project;
 		
 		// TODO read threshold from project preferences
 		// 1 is highest confidence
@@ -96,13 +102,11 @@ public class Export {
 		}
 		
 		// get file location this bug is found in
-		IPath path = project.getFile(bug.getPrimarySourceLineAnnotation().getSourcePath()).getProjectRelativePath();
-		IResource res = getResource(project, path.removeLastSegments(1).toString(), path.lastSegment());
-		File file = res.getLocation().toFile();
+		File file = getSourceFile();
 		logger.debug("searching for versioned directory, starting at: " + file);
 		
 		if(new RepositoryBuilder().findGitDir(file).getGitDir() != null) {
-    		logger.debug("found versioned directory" + path);
+    		logger.debug("found versioned directory" + file);
 			try {
 				// get remotes and check if it contains github(or other popular platforms)
 				Repository repository = new RepositoryBuilder().findGitDir(file).build();
@@ -130,6 +134,12 @@ public class Export {
 				logger.error(e.getMessage() + "\n" + e.getStackTrace());
 			}
 		}
+	}
+	
+	protected File getSourceFile() {
+		IPath path = project.getFile(bug.getPrimarySourceLineAnnotation().getSourcePath()).getProjectRelativePath();
+		IResource res = getResource(project, path.removeLastSegments(1).toString(), path.lastSegment());
+		return res.getLocation().toFile();
 	}
 	
 	/**
@@ -308,15 +318,37 @@ public class Export {
 		md += "The problem occurs in `"
 				+ bug.getPrimarySourceLineAnnotation().getClassName()
 				+ "` on line **" + bug.getPrimarySourceLineAnnotation().getStartLine() 
-				+ "** in method `" + bug.getPrimaryMethod().getMethodName() + "`\n\n";
+				+ "** in method `" + bug.getPrimaryMethod().getMethodName() + "`:\n\n";
 		
-		// TODO get file content
-		md += "";
+		md += "```java\n";
+		md += getSourceCodeFragment(getSourceFile(), bug.getPrimarySourceLineAnnotation().getStartLine() - 5, bug.getPrimarySourceLineAnnotation().getEndLine() + 5 );
+		md += "```\n\n";
+		
 		md += "We have **" + bug.getPriorityString() + "** confidence for this **" + BugRankCategory.getRank(bug.getBugRank()) + "** bug!";
-		md +="\n\nThis bug was found using the [FBIssueExport](https://github.com/kmindi/FBIssueExport) by kmindi for FindBugs. \n"
+		md +="\n\nThis bug was found by FindBugs and exported using [FBIssueExport](https://github.com/kmindi/FBIssueExport) by kmindi. \n"
 				+ "(FindBugs Bug-ID: "+ bug.getInstanceHash() + ")";
 		
 		return md;
+	}
+	
+	protected String getSourceCodeFragment(File file, int start, int end) {
+		
+		if(start <= 1) {
+			start = 1;
+		}
+		
+		try (LineNumberReader rdr = new LineNumberReader(new FileReader(file))) {
+	        StringBuilder sb1 = new StringBuilder();
+	        for (String line = null; (line = rdr.readLine()) != null;) {
+	            if (rdr.getLineNumber() >= start && rdr.getLineNumber() <= end) {
+	                sb1.append(line).append("\n");
+	            }
+	        }
+	        return sb1.toString();
+	    } catch (IOException e) {
+	    	logger.error(e.getMessage() + "\n" + e.getStackTrace());
+	    	return null;
+		}
 	}
 
 	/**
