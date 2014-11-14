@@ -152,7 +152,6 @@ public class Export {
 	 * @return
 	 */
 	IResource getResource(IProject project, String folderPath, String fileName) {
-
 	    IJavaProject javaProject = JavaCore.create(project);
 	    try {
 			for (IPackageFragmentRoot root : javaProject.getAllPackageFragmentRoots()) {
@@ -305,10 +304,18 @@ public class Export {
 		return false;
 	}
 	
+	/**
+	 * Gets a title for the bugs
+	 * @return
+	 */
 	protected String getTitle() {
 		return bug.getMessageWithoutPrefix();
 	}
 	
+	/**
+	 * Gets a Markdown formatted Description of the bug.
+	 * @return
+	 */
 	protected String getDescription() {
 		String md = "";
 		md += "# " + bug.getAbridgedMessage() + "\n";
@@ -331,6 +338,13 @@ public class Export {
 		return md;
 	}
 	
+	/**
+	 * Gets a specifed range of lines from a file
+	 * @param file
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	protected String getSourceCodeFragment(File file, int start, int end) {
 		
 		if(start <= 1) {
