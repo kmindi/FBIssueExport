@@ -35,9 +35,9 @@
           <action
                 class="fbissueexport.actions.RightClickIssueShowExportAction"
                 enablesFor="1"
-                icon="icons/sample.png"
+                icon="icons/share-square-o_bd2e58_16.png"
                 id="FBIssueExport.actions.RightClickIssueShowExportAction"
-                label="Export to GitHub or other"
+                label="Export to Issue-Tracker"
                 menubarPath="fb">
          </action>
          

@@ -35,4 +35,4 @@ Let people know how they can dive into the project, include important links to t
 
 ## License
 
-This plugin is licensed under a
+This plugin is licensed under a MIT License
