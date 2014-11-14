@@ -2,26 +2,18 @@ package fbissueexport;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.LineNumberReader;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
@@ -35,23 +27,14 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.core.JavaProject;
-import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.lib.Config;
@@ -62,7 +45,6 @@ import org.eclipse.ui.PlatformUI;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.BugRankCategory;
 
@@ -74,8 +56,19 @@ public class Export {
 
 	private IProject project;
 	
+	/**
+	 * Regular Expression to check for different kinds of platforms.
+	 * It expects a naming convention like "owner/repositoryName" after the platform URL like "github.com".
+	 * 
+	 * Groups:
+	 *  - Group 3: Platform URL
+	 *  - Group 5: Owner
+	 *  - Group 6: Repository
+	 */
+	private static Pattern platformUrlPattern = Pattern.compile("((git@|https://)([\\w\\.@]+)(/|:))([\\w,\\-,\\_]+)/([\\w,\\-,\\_]+)(.git){0,1}((/){0,1})");
+	
 	public Export(BugInstance bug, IProject project) {
-		logger.info("new Export instance created for Bug-ID: " + bug.getInstanceHash() + "in project " + project.getName());
+		logger.debug("new Export instance created for Bug-ID: " + bug.getInstanceHash() + "in project " + project.getName());
 		
 		this.bug = bug;
 		this.project = project;
@@ -96,10 +89,13 @@ public class Export {
 					0);
 		    
 		    switch(dialog.open()) {
-		    case 1: logger.debug("stopping export because user is not sure if confidence is high enough.");
-	    	return;
+		    case 1: logger.info("stopping export because user is not sure if confidence is high enough.");
+	    			return;
 		    }
 		}
+		
+		// TODO only search once for possible project issue tracker
+		// save it in prefrences and use that
 		
 		// get file location this bug is found in
 		File file = getSourceFile();
@@ -115,27 +111,34 @@ public class Export {
 				
 				for (String remoteName : remotes) {
 			      String url = storedConfig.getString("remote", remoteName, "url");
-			      logger.debug(remoteName + " " + url);
+			      logger.debug("found remote: " + remoteName + " " + url);
 			      
 			      // parse url for popular social coding platforms
-			      //Pattern patternGitHub = Pattern.compile("^*//github.com/([^/]){1}/([^/]){1}")
-			      Pattern patternGitHub = Pattern.compile("((git@|https://)([\\w\\.@]+)(/|:))([\\w,\\-,\\_]+)/([\\w,\\-,\\_]+)(.git){0,1}((/){0,1})");
-			      Matcher matcher = patternGitHub.matcher(url);
+			      Matcher matcher = platformUrlPattern.matcher(url);
 			      if(matcher.matches()) {
 			    	  // found a plattform
 			    	  logger.debug("regex matched platform: " + matcher.group(3) + " owner: " + matcher.group(5) + " repo: " + matcher.group(6));
-			    	  
+			    	  // call general export
 			    	  exportToPlatformTracker(matcher.group(3), matcher.group(5), matcher.group(6));
-			    	  
+			    	  // only export to first found platform so break loop
+			    	  // TODO check if the issue tracker is used on this platform
+			    	  // TODO save used tracker in project preferences
+			    	  break;
 			      }
 			    }
-				
 			} catch (IOException e) {
 				logger.error(e.getMessage() + "\n" + e.getStackTrace());
 			}
+		} else {
+			logger.debug("no versioned directory found");
 		}
 	}
 	
+	/**
+	 * Gets the primary source file referenced by the BugInstance from the corresponding project.
+	 * @see getResource
+	 * @return 
+	 */
 	protected File getSourceFile() {
 		IPath path = project.getFile(bug.getPrimarySourceLineAnnotation().getSourcePath()).getProjectRelativePath();
 		IResource res = getResource(project, path.removeLastSegments(1).toString(), path.lastSegment());
@@ -236,8 +239,8 @@ public class Export {
 			HttpPost request = new HttpPost("https://bitbucket.org/api/1.0/repositories/" + issueRepo + "/issues");
 			
 			List<NameValuePair> params = new ArrayList<NameValuePair>(2);
-			params.add(new BasicNameValuePair("title", getTitle()));
-			params.add(new BasicNameValuePair("content", getDescription()));
+			params.add(new BasicNameValuePair("title", getBugTitle()));
+			params.add(new BasicNameValuePair("content", getBugDescription()));
 			request.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 			
 			logger.debug("request line:" + request.getRequestLine());
@@ -292,8 +295,8 @@ public class Export {
 			// if the bug is not filed yet create a new issue
 			// https://github.com/<OWNER>/<REPOSITORY>/issues/new?title=<TITLE>&body=<DESCRIPTION>
 			URIBuilder uriBuilder = new URIBuilder("https://github.com/" + issueRepo + "/issues/new");
-			uriBuilder.addParameter("title", getTitle());
-			uriBuilder.addParameter("body", getDescription());
+			uriBuilder.addParameter("title", getBugTitle());
+			uriBuilder.addParameter("body", getBugDescription());
 			openWebPage(uriBuilder.build());
 			return true;
 			
@@ -305,18 +308,18 @@ public class Export {
 	}
 	
 	/**
-	 * Gets a title for the bugs
+	 * Gets a title for the bug.
 	 * @return
 	 */
-	protected String getTitle() {
+	protected String getBugTitle() {
 		return bug.getMessageWithoutPrefix();
 	}
 	
 	/**
-	 * Gets a Markdown formatted Description of the bug.
+	 * Gets a Markdown formatted description of the bug.
 	 * @return
 	 */
-	protected String getDescription() {
+	protected String getBugDescription() {
 		String md = "";
 		md += "# " + bug.getAbridgedMessage() + "\n";
 		md += "\n\n"
@@ -339,7 +342,7 @@ public class Export {
 	}
 	
 	/**
-	 * Gets a specifed range of lines from a file
+	 * Gets a specified range of lines from a file.
 	 * @param file
 	 * @param start
 	 * @param end

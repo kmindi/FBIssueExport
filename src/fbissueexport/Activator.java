@@ -3,7 +3,6 @@ package fbissueexport;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.SimpleLayout;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -25,8 +24,8 @@ public class Activator extends AbstractUIPlugin {
 	public Activator() {
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Gets called if the plugin is activated.
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
 	public void start(BundleContext context) throws Exception {
@@ -38,8 +37,7 @@ public class Activator extends AbstractUIPlugin {
 		BasicConfigurator.configure(new ConsoleAppender(new PatternLayout("%d{ISO8601} %-5p [%t] %c: %m%n")));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
