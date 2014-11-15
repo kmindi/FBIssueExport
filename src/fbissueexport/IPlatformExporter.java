@@ -4,7 +4,7 @@ import java.net.URI;
 
 /**
  * Interface for PlatformExporters
- * @author Kai
+ * @author Kai Mindermann
  *
  */
 public interface IPlatformExporter {

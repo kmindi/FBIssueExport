@@ -83,7 +83,7 @@ public class BitbucketExporter extends PlatformExporterFactory implements IPlatf
 			return true;
 
 		} catch (ParseException | IOException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 		};
 
 		return false;

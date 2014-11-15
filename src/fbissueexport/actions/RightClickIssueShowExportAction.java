@@ -41,11 +41,16 @@ public class RightClickIssueShowExportAction implements IObjectActionDelegate{
                 logger.debug("new action executed on " + marker.getResource().getClass() + 
         				" which is from project " + getSelectedProject(marker.getResource()) + ".");
                 if (MarkerUtil.isFindBugsMarker(marker)) {
-                	new Export(MarkerUtil.findBugInstanceForMarker(marker), getSelectedProject(marker.getResource()));
+                	IProject project = getSelectedProject(marker.getResource());
+                	if(project != null) {
+                		new Export(MarkerUtil.findBugInstanceForMarker(marker), project);
+                	} else {
+                		logger.info("project not found for marker");
+                	}
                 }
             }
         } catch (Exception e) {
-        	logger.error(e.getMessage() + "\n" + e.getStackTrace());
+        	logger.error(e.getMessage(), e);
 		} finally {
             targetPart = null;
         }

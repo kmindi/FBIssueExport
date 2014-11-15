@@ -130,7 +130,7 @@ public class PlatformExporterFactory {
 			logger.debug("request status: " + result.getStatusLine());
 			return new ResponseWithEntity(result,EntityUtils.toString(result.getEntity(), "UTF-8"));
 		} catch (IOException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 		}
 		return null;
 	}
@@ -155,8 +155,16 @@ public class PlatformExporterFactory {
 
 		md += "The problem occurs in `"
 				+ bugInstance.getPrimarySourceLineAnnotation().getClassName()
-				+ "` on line **" + bugInstance.getPrimarySourceLineAnnotation().getStartLine() 
-				+ "** in method `" + bugInstance.getPrimaryMethod().getMethodName() + "`:\n\n";
+				+ "` on line **" + bugInstance.getPrimarySourceLineAnnotation().getStartLine() + "**";
+		if(bugInstance.getPrimaryMethod() != null) {
+			md += "in method `" + bugInstance.getPrimaryMethod().getMethodName();
+		} else if(bugInstance.getPrimaryField() != null) {
+			md += "in field `" + bugInstance.getPrimaryField().getFieldName();
+		} else if(bugInstance.getPrimaryLocalVariableAnnotation() != null) {
+			md += "in local variable `" + bugInstance.getPrimaryLocalVariableAnnotation().getName();
+		}
+		md += "`:\n\n";
+				
 
 		md += "```java\n";
 		md += getSourceCodeFragment(ProjectUtils.getSourceFile(project, bugInstance), bugInstance.getPrimarySourceLineAnnotation().getStartLine() - 5, bugInstance.getPrimarySourceLineAnnotation().getEndLine() + 5 );
@@ -191,7 +199,7 @@ public class PlatformExporterFactory {
 			}
 			return sb1.toString();
 		} catch (IOException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 			return null;
 		}
 	}
@@ -208,7 +216,7 @@ public class PlatformExporterFactory {
 			try {
 				desktop.browse(uri);
 			} catch (Exception e) {
-				logger.error(e.getMessage() + "\n" + e.getStackTrace());
+				logger.error(e.getMessage(), e);
 				// TODO fallback to API use / show own GUI to create new issue
 			}
 		}

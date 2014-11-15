@@ -65,7 +65,7 @@ public class GitHubExporter extends PlatformExporterFactory implements IPlatform
 			return true;
 
 		} catch (ParseException | IOException | URISyntaxException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 		};
 
 		return false;

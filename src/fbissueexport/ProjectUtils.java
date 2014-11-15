@@ -49,7 +49,7 @@ public class ProjectUtils {
 				}
 			}
 		} catch (JavaModelException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 		}
 		// file not found in any source path
 		return null;

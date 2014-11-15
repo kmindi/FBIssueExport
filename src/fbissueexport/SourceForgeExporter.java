@@ -38,7 +38,7 @@ public class SourceForgeExporter extends PlatformExporterFactory implements IPla
 			return true;
 
 		} catch (ParseException | URISyntaxException e) {
-			logger.error(e.getMessage() + "\n" + e.getStackTrace());
+			logger.error(e.getMessage(), e);
 		};
 
 		return false;

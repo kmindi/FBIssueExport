@@ -71,7 +71,7 @@ public class Export {
 				}
 
 			} catch (IOException e) {
-				logger.error(e.getMessage() + "\n" + e.getStackTrace());
+				logger.error(e.getMessage(), e);
 			}
 		} else {
 			logger.debug("no versioned directory found");
