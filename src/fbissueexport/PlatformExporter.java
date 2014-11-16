@@ -88,13 +88,13 @@ public abstract class PlatformExporter implements IPlatformExporter{
 				+ bugInstance.getPrimarySourceLineAnnotation().getClassName()
 				+ "` on line **" + bugInstance.getPrimarySourceLineAnnotation().getStartLine() + "**";
 		if(bugInstance.getPrimaryMethod() != null) {
-			md += "in method `" + bugInstance.getPrimaryMethod().getMethodName();
+			md += "in method `" + bugInstance.getPrimaryMethod().getMethodName() + "`";
 		} else if(bugInstance.getPrimaryField() != null) {
-			md += "in field `" + bugInstance.getPrimaryField().getFieldName();
+			md += "in field `" + bugInstance.getPrimaryField().getFieldName() + "`";
 		} else if(bugInstance.getPrimaryLocalVariableAnnotation() != null) {
-			md += "in local variable `" + bugInstance.getPrimaryLocalVariableAnnotation().getName();
+			md += "in local variable `" + bugInstance.getPrimaryLocalVariableAnnotation().getName() + "`";
 		}
-		md += "`:\n\n";
+		md += ":\n\n";
 				
 
 		md += "```java\n";
@@ -102,7 +102,7 @@ public abstract class PlatformExporter implements IPlatformExporter{
 		md += "```\n\n";
 
 		md += "We have **" + bugInstance.getPriorityString() + "** confidence for this **" + BugRankCategory.getRank(bugInstance.getBugRank()) + "** bug!";
-		md +="\n\nThis bug was found by FindBugs and exported using [FBIssueExport](https://github.com/kmindi/FBIssueExport) by kmindi. \n"
+		md +="\n\nThis bug was found by FindBugs and exported using kmindi's [FBIssueExport](https://github.com/kmindi/FBIssueExport). \n"
 				+ "(FindBugs Bug-ID: "+ bugInstance.getInstanceHash() + ")";
 
 		return md;
