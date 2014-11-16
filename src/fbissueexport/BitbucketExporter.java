@@ -26,7 +26,7 @@ import edu.umd.cs.findbugs.BugInstance;
  * @author Kai Mindermann
  *
  */
-public class BitbucketExporter extends PlatformExporterFactory implements IPlatformExporter {
+public class BitbucketExporter extends PlatformExporter implements IPlatformExporter {
 
 	private static Logger logger = Logger.getLogger(BitbucketExporter.class);
 	

@@ -19,7 +19,7 @@ import edu.umd.cs.findbugs.BugInstance;
  * @author Kai Mindermann
  *
  */
-public class GitHubExporter extends PlatformExporterFactory implements IPlatformExporter {
+public class GitHubExporter extends PlatformExporter implements IPlatformExporter {
 
 	private static Logger logger = Logger.getLogger(GitHubExporter.class);
 	

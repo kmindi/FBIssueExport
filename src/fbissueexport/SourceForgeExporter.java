@@ -2,6 +2,7 @@ package fbissueexport;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Pattern;
 
 import org.apache.http.ParseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -15,9 +16,28 @@ import edu.umd.cs.findbugs.BugInstance;
  * @author Kai Mindermann
  *
  */
-public class SourceForgeExporter extends PlatformExporterFactory implements IPlatformExporter {
+public class SourceForgeExporter extends PlatformExporter implements IPlatformExporter {
 
 	private static Logger logger = Logger.getLogger(SourceForgeExporter.class);
+	
+	/**
+	 * Regular Expression to check for sourceforge git urls
+	 * 
+	 * SF git urls look like this: 
+	 * - read-only-access:
+	 * 	- git://git.code.sf.net/p/PROJECTNAME/MOUNTPOINT/
+	 * 	- http://git.code.sf.net/p/PROJECTNAME/MOUNTPOINT/
+	 * - developer-read-write-access:
+	 * 	- ssh://USERNAME@git.code.sf.net/p/PROJECTNAME/MOUNTPOINT
+	 *  - https://USERNAME@git.code.sf.net/p/PROJECTNAME/MOUNTPOINT
+	 *  
+	 *  Where MOUNTPOINT usually is "code"
+	 *  
+	 *  Groups:
+	 *  TODO
+	 */
+	private static Pattern platformURLPattern = Pattern.compile("((git@|https://)([\\w\\.@]+)(/|:))([\\w,\\-,\\_]+)/([\\w,\\-,\\_]+)(.git){0,1}((/){0,1})");
+	
 	
 	protected SourceForgeExporter(String ownerName, String repositoryName,
 			BugInstance bugInstance, IProject project) {
@@ -53,6 +73,10 @@ public class SourceForgeExporter extends PlatformExporterFactory implements IPla
 	 */
 	public URI isBugAlreadyExported() {
 		return null;
+	}
+	
+	public static Pattern getplatformURLPattern() {
+		return platformURLPattern;
 	}
 
 }
