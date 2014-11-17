@@ -1,4 +1,4 @@
-package fbissueexport;
+package de.kmindi.fbissueexport;
 
 import org.apache.http.HttpResponse;
 

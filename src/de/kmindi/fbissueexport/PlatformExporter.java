@@ -1,4 +1,4 @@
-package fbissueexport;
+package de.kmindi.fbissueexport;
 
 import java.awt.Desktop;
 import java.io.File;

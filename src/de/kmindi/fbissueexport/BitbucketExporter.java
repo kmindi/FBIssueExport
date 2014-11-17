@@ -1,4 +1,4 @@
-package fbissueexport;
+package de.kmindi.fbissueexport;
 
 import java.io.IOException;
 import java.net.URI;

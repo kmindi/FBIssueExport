@@ -1,4 +1,4 @@
-package fbissueexport.actions;
+package de.kmindi.fbissueexport.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

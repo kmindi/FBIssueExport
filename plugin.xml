@@ -18,7 +18,7 @@
          <action
                label="&amp;Sample Action"
                icon="icons/sample.gif"
-               class="fbissueexport.actions.SampleAction"
+               class="de.kmindi.fbissueexport.actions.SampleAction"
                tooltip="Hello, Eclipse world"
                menubarPath="sampleMenu/sampleGroup"
                toolbarPath="sampleGroup"
@@ -33,10 +33,10 @@
             id="de.tobject.findbugs.MarkerActions"
             objectClass="org.eclipse.core.resources.IMarker">
           <action
-                class="fbissueexport.actions.RightClickIssueShowExportAction"
+                class="de.kmindi.fbissueexport.actions.RightClickIssueShowExportAction"
                 enablesFor="1"
                 icon="icons/share-square-o_bd2e58_16.png"
-                id="FBIssueExport.actions.RightClickIssueShowExportAction"
+                id="de.kmindi.fbissueexport.actions.RightClickIssueShowExportAction"
                 label="Export to Issue-Tracker"
                 menubarPath="fb">
          </action>

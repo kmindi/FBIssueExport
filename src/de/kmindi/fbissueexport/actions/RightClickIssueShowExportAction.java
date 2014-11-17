@@ -1,4 +1,4 @@
-package fbissueexport.actions;
+package de.kmindi.fbissueexport.actions;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IMarker;
@@ -11,8 +11,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
+import de.kmindi.fbissueexport.Export;
 import de.tobject.findbugs.reporter.MarkerUtil;
-import fbissueexport.Export;
 
 /**
  * Action that is called for right click on FindBugs Bugs and provides an export.

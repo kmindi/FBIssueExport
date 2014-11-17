@@ -1,4 +1,4 @@
-package fbissueexport;
+package de.kmindi.fbissueexport;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,6 +23,7 @@ public class SourceForgeExporter extends PlatformExporter implements IPlatformEx
 	/**
 	 * Regular Expression to check for sourceforge git urls
 	 * 
+	 * http://sourceforge.net/p/forge/documentation/Git/
 	 * SF git urls look like this: 
 	 * - read-only-access:
 	 * 	- git://git.code.sf.net/p/PROJECTNAME/MOUNTPOINT/
