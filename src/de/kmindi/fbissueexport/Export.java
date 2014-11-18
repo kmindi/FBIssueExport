@@ -5,12 +5,16 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.service.prefs.BackingStoreException;
 
 import edu.umd.cs.findbugs.BugInstance;
 
@@ -28,15 +32,24 @@ public class Export {
 	public Export(BugInstance bug, IProject project) {
 		logger.debug("new Export instance created for Bug-ID: " + bug.getInstanceHash() + "in project " + project.getName());
 
-		// TODO read threshold from project preferences
+		IScopeContext projectScope = new ProjectScope(project);
+		IEclipsePreferences projectPreferences = projectScope.getNode("de.kmindi.fbissueexport");
+		int threshold = projectPreferences.getInt("threshold.confidence", 2);
+		// TODO store only if changed through an interface or if really non exisitent
+		projectPreferences.putInt("threshold.confidence", threshold);
+		try {
+			projectPreferences.flush();
+		} catch (BackingStoreException e) {
+			logger.error(e.getMessage(), e);
+		}
 		// 1 is highest confidence
-		if(bug.getPriority() > 2) {
+		if(bug.getPriority() >= threshold) {
 			Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 			MessageDialog dialog = new MessageDialog(
 					activeShell, 
 					"Confidence below threshold!", 
 					null,
-					"This bug is only of " + bug.getPriorityString() + "! Are you sure you want to report it?",
+					"This bug is only of " + bug.getPriorityString() + " confidence! Are you sure you want to report it?",
 					MessageDialog.QUESTION_WITH_CANCEL, 
 					new String[]{
 						IDialogConstants.YES_LABEL, 
