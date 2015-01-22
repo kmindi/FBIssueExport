@@ -25,6 +25,11 @@ public class GitHubExporter extends PlatformExporter implements IPlatformExporte
 	
 	protected GitHubExporter(String ownerName, String repositoryName,
 			BugInstance bugInstance, IProject project) {
+		
+		// TODO check if issue tracker is available for this project
+		// TODO check if this repo is a fork and if a fork if issue tracker is available on orignal project
+		// if no issue tracker is available show warning to user
+		
 		super(ownerName, repositoryName, bugInstance, project);
 	}
 	
