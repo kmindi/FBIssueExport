@@ -1,11 +1,6 @@
-## Synopsis
+**Adds an export context menu to FindBugs Bugs in Eclipse to discuss bugs on social coding platforms.**
 
-This eclipse plugin extends the FindBugs eclipse plugin. 
-It adds an export feature to export found bugs to popular social coding platforms like GitHub or Bitbucket.
-
-## Example Screenshots
-
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
+This eclipse plugin extends the [FindBugs](http://findbugs.sourceforge.net/) eclipse plugin. It uses the web form(s) to create issues; it currently does not rely on [Mylyn](http://www.eclipse.org/mylyn/) at the moment. I dont know if this is a feature or a bug :P.
 
 ## Motivation
 
@@ -14,11 +9,7 @@ This plugin trys to provide better interaction through exporting the found bug t
 
 ## Installation
 
-Provide code examples and explanations of how to get the project.
-
-## API Reference
-
-Depending on the size of the project, if it is small and simple enough the reference docs can be added to the README. For medium size to larger projects it is important to at least provide a link to where the API reference docs live.
+*TODO*
 
 ## Dependencies
 
@@ -27,12 +18,8 @@ Depending on the size of the project, if it is small and simple enough the refer
 
 ## Tests
 
-Describe and show how to run the tests with code examples.
-
-## Contributors
-
-Let people know how they can dive into the project, include important links to things like issue trackers, irc, twitter accounts if applicable.
+*TODO* (currently there are now tests, PRs welcome)
 
 ## License
 
-This plugin is licensed under a MIT License
+This plugin is licensed under a [MIT License](LICENSE)
