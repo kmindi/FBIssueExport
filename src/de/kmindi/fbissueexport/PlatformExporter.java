@@ -117,6 +117,8 @@ public abstract class PlatformExporter implements IPlatformExporter{
 	 */
 	protected String getSourceCodeFragment(File file, int start, int end) {
 
+		// TODO handle already indented lines somehow
+		
 		if(start <= 1) {
 			start = 1;
 		}
